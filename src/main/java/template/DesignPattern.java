@@ -4,6 +4,7 @@ import com.goide.GoTypes;
 import com.goide.psi.*;
 import com.goide.psi.impl.GoPsiImplUtil;
 import com.goide.psi.impl.GoTypeUtil;
+import com.goide.codeInsight.imports.GoImport;
 import com.goide.refactor.template.GoTemplate;
 import com.goide.refactor.util.GoRefactoringUtil;
 import com.intellij.codeInsight.actions.OptimizeImportsAction;
@@ -50,8 +51,8 @@ public abstract class DesignPattern {
     protected abstract GoTypeSpec getGoTypeSpec();
 
     //获取当前文件中所有方法和结构体使用到的引用
-    public static Set<GoRefactoringUtil.Import> getImports(@NotNull GoFile file, @NotNull Editor editor, @Nullable GoTypeSpec typeSpecToGenerate) {
-        final Set<GoRefactoringUtil.Import> importsToAdd = new HashSet<>();
+    public static Set<GoImport> getImports(@NotNull GoFile file, @NotNull Editor editor, @Nullable GoTypeSpec typeSpecToGenerate) {
+        final Set<GoImport> importsToAdd = new HashSet<>();
         //获取已经存在的方法
         List<GoNamedSignatureOwner> existingMethods = typeSpecToGenerate != null ? typeSpecToGenerate.getAllMethods() : ContainerUtil.emptyList();
 
@@ -118,7 +119,9 @@ public abstract class DesignPattern {
     //获取结构体成员变量
     protected static List<FieldInfo> getStructFields(GoTypeSpec typeSpec) {
         List<FieldInfo> fields = new SmartList();
-        if (!typeSpec.isValid()) return fields;
+        if (!typeSpec.isValid()) {
+            return fields;
+        }
 
         //获取声明的结构体
         GoTypeDeclaration typeDeclaration = PsiTreeUtil.getParentOfType(typeSpec, GoTypeDeclaration.class);
@@ -166,9 +169,11 @@ public abstract class DesignPattern {
     public void generateText() {
         GoTemplate template = new GoTemplate(file);
         createTemplate(template);
-        Set<GoRefactoringUtil.Import> set = new HashSet<>();
+        Set<GoImport> set = new HashSet<>();
         for (GoTypeSpec spec : file.getTypes()) {
-            if (!GoTypeUtil.isInterface(spec)) set.addAll(getImports(file, editor, spec));
+            if (!GoTypeUtil.isInterface(spec)) {
+                set.addAll(getImports(file, editor, spec));
+            }
         }
         template.startTemplate(editor, getCalcOffset(editor, getGoTypeSpec()), "Generate " + this.getClass().getSimpleName(), null, set);
         reformatCode();
@@ -186,7 +191,7 @@ public abstract class DesignPattern {
 
     //判断当前结构体是否已经实现对应接口
     private static boolean isAlreadyImplemented(@NotNull GoNamedSignatureOwner m, @NotNull List<GoNamedSignatureOwner> existingMethod) {
-        return existingMethod.stream().anyMatch((em) -> Comparing.equal(em.getName(), m.getName()) && GoTypeUtil.isSignaturesIdentical(m.getSignature(), em.getSignature(), true));
+        return existingMethod.stream().anyMatch((em) -> Comparing.equal(em.getName(), m.getName()) && GoTypeUtil.areSignaturesIdentical(m.getSignature(), em.getSignature(), true));
     }
 
     //检查是否用重复方法
@@ -208,7 +213,9 @@ public abstract class DesignPattern {
                                     isDuplicated.set(true);
                                 }
                     });
-                    if (isDuplicated.get()) break;
+                    if (isDuplicated.get()) {
+                        break;
+                    }
                 }
             }
         }
@@ -279,7 +286,9 @@ public abstract class DesignPattern {
         }
 
         public static List<MethodInfo> Parse(GoTypeSpec interfaceToImpl) {
-            if (!interfaceToImpl.isValid()) return null;
+            if (!interfaceToImpl.isValid()) {
+                return null;
+            }
 
             List<MethodInfo> list = new ArrayList<>();
             for (GoNamedSignatureOwner signatureOwner : interfaceToImpl.getAllMethods()) {
@@ -327,7 +336,9 @@ public abstract class DesignPattern {
         }
 
         public String getParametersText(){
-            if (parameters==null|| parameters.isEmpty()) return "()";
+            if (parameters==null|| parameters.isEmpty()) {
+                return "()";
+            }
             return setupFunctionParameters(parameters);
         }
 
@@ -343,7 +354,9 @@ public abstract class DesignPattern {
 
         public String getParametersTextNoType(){
             StringBuilder builder=new StringBuilder();
-            if (parameters==null|| parameters.isEmpty()) return "()";
+            if (parameters==null|| parameters.isEmpty()) {
+                return "()";
+            }
             builder.append("(");
             for (int i = 0; i < parameters.size(); i++) {
                 String fieldName=parameters.get(i).getName();

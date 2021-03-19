@@ -32,7 +32,9 @@ public class TestAction extends BaseAction {
     }
 
     private void parseParametersList(GoParameters p, StringBuilder builder) {
-        if (p == null) return;
+        if (p == null) {
+            return;
+        }
         for (GoParamDefinition definition : p.getDefinitionList()) {
             //参数名
             builder.append(definition.getName())

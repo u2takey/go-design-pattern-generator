@@ -14,7 +14,6 @@ import com.intellij.codeInsight.daemon.impl.PsiElementListNavigator;
 import com.intellij.codeInsight.navigation.BackgroundUpdaterTask;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.gotoByName.*;
-import com.intellij.navigation.ChooseByNameContributor;
 import com.intellij.navigation.NavigationItem;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -32,7 +31,6 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.*;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.indexing.FindSymbolParameters;
-import com.intellij.util.ui.UIUtil;
 import one.util.streamex.StreamEx;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -63,7 +61,9 @@ public class PopupUtil {
         if (spec==null
                 || project==null
                 || !(spec.getSpecType().getType() instanceof GoStructType)
-        ) return null;
+        ) {
+            return null;
+        }
 
         GoStructType structType=(GoStructType) spec.getSpecType().getType();
         List<GoNamedElement> definitions = ContainerUtil.filter(structType.getFieldDefinitions(), (fd) -> !fd.isBlank());
@@ -97,7 +97,9 @@ public class PopupUtil {
             JBPopup popup = PsiElementListNavigator.navigateOrCreatePopup(elements,title==null? DEFAULT_STRUCT_TITLE :title, null, GoGotoUtil.DEFAULT_RENDERER, ApplicationManager.getApplication().isUnitTestMode() ? null : new PopupUtil.DummyBackgroundUpdaterTask(project), (objects) -> {
                 if (objects.length > 1) {
                     SmartList<GoTypeSpec> list=new SmartList<>();
-                    for (Object o:objects) list.add((GoTypeSpec) o);
+                    for (Object o:objects) {
+                        list.add((GoTypeSpec) o);
+                    }
                     callback.getMultiChooseGoType(list);
                 }else {
                     callback.getMultiChooseGoType(null);
@@ -146,9 +148,11 @@ public class PopupUtil {
         popup.setCheckBoxShortcut(ActionManager.getInstance().getAction("ImplementMethods").getShortcutSet());
         popup.setSearchInAnyPlace(true);
         popup.invoke(new ChooseByNamePopupComponent.Callback() {
+            @Override
             public void elementChosen(Object element) {
             }
 
+            @Override
             public void onClose() {
                 Disposer.dispose(model);
                 if (popup.myClosedCorrectly) {
@@ -216,14 +220,17 @@ public class PopupUtil {
             super(file);
         }
 
+        @Override
         public String getName() {
             return "Create Type...";
         }
 
+        @Override
         public String getTypeName() {
             return this.getName();
         }
 
+        @Override
         @NotNull
         public Icon getIcon() {
             return AllIcons.Actions.IntentionBulb;
@@ -235,6 +242,7 @@ public class PopupUtil {
             super(project, "Working work...", null);
         }
 
+        @Override
         public String getCaption(int size) {
             return null;
         }
@@ -265,7 +273,9 @@ public class PopupUtil {
             return this.myAlreadyImplementedTypes;
         }
 
-        public void processElementsWithName(@NotNull String s, @NotNull Processor<NavigationItem> processor, @NotNull FindSymbolParameters parameters) {
+        @Override
+        public void processElementsWithName(@NotNull String s, @NotNull Processor<?
+                super NavigationItem> processor, @NotNull FindSymbolParameters parameters) {
             Set<GoTypeSpec> alreadyImplementedTypes = this.getAlreadyImplementedTypes();
             super.processElementsWithName(s, new FilteringProcessor((o) -> {
                 if (!(o instanceof GoTypeSpec)) {
@@ -279,6 +289,7 @@ public class PopupUtil {
             }, processor), parameters);
         }
 
+        @Override
         public void dispose() {
             this.myFile = null;
             this.myGenerate = null;
@@ -297,6 +308,7 @@ public class PopupUtil {
             super(project, model, provider, oldPopup, null, false, 0);
         }
 
+        @Override
         public void close(boolean isOk) {
             if (!this.checkDisposed()) {
                 this.myClosedCorrectly = isOk;

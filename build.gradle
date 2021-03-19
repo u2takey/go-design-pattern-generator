@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'org.jetbrains.intellij' version '0.4.17'
+    id 'org.jetbrains.intellij' version '0.7.2'
 }
 
 group 'com.cn.xida.plugin'
@@ -22,16 +22,16 @@ dependencies {
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
     //当前IDEA开发平台版本
-    version 'IU-2019.3.3'
-    //Goland需要指定为IU
-    type 'IU'
-    //插件版本号，需要与version指定的版本兼容，具体查看方式就是在当前IDEA市场中下载一个再看版本
-    plugins 'org.jetbrains.plugins.go:193.6494.35.125'
+//    version '2020.2'
+    version '2020.1.2'
+    //Goland 需要指定为GO
+    type 'GO'
+    // 插件版本号，需要与version指定的版本兼容，具体查看方式就是在当前IDEA市场中下载一个再看版本
+    // https://plugins.jetbrains.com/plugin/9568-go/versions
+    plugins 'org.jetbrains.plugins.go:201.7223.82.165'
 }
 
-runIde{
-    ideDirectory 'G:\\Jerbrain\\apps\\Goland\\ch-0\\193.6494.61'
-}
+
 
 patchPluginXml {
     changeNotes """
@@ -45,4 +45,8 @@ publishPlugin {
 
 tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
+}
+
+runIde {
+
 }

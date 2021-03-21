@@ -5,7 +5,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import template.pattern.BuilderTemplate;
-import template.pattern.SingletonTemplate;
 import utils.PopupUtil;
 
 /**
@@ -15,7 +14,9 @@ import utils.PopupUtil;
  */
 public class BuilderAction extends BaseAction {
     @Override
-    protected void actionPerformedImpl(AnActionEvent event,Project project, GoFile file, Editor editor) {
-        PopupUtil.getChooseStructPopup(file, editor, project,null, goTypeSpec -> new BuilderTemplate(event,goTypeSpec).generateText());
+    protected void actionPerformedImpl(AnActionEvent event, Project project, GoFile file,
+                                       Editor editor) {
+        PopupUtil.getChooseStructPopup(file, editor, project, null,
+                goTypeSpec -> new BuilderTemplate(event, goTypeSpec).generateText());
     }
 }

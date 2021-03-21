@@ -14,10 +14,13 @@ import utils.PopupUtil;
  */
 public class ProxyAction extends BaseAction {
     @Override
-    protected void actionPerformedImpl(AnActionEvent event, Project project, GoFile file, Editor editor) {
-        PopupUtil.getChooseStructPopup(file, editor, project, "Choose struct to be proxy", structType -> {
-            PopupUtil.getChooseInterfacePopup(file, project, "Choose which interface to implement proxy pattern", interfaceToImpl -> {
-                new ProxyTemplate(event,structType,interfaceToImpl).generateText();
+    protected void actionPerformedImpl(AnActionEvent event, Project project, GoFile file,
+                                       Editor editor) {
+        PopupUtil.getChooseStructPopup(file, editor, project, "Choose struct to be proxy",
+                structType -> {
+            PopupUtil.getChooseInterfacePopup(file, project, "Choose which interface to implement" +
+                    " proxy pattern", interfaceToImpl -> {
+                new ProxyTemplate(event, structType, interfaceToImpl).generateText();
             });
         });
     }

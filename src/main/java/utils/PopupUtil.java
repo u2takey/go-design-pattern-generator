@@ -47,42 +47,43 @@ import java.util.Set;
  */
 public class PopupUtil {
 
-    //回调返回得到的元素
-    public interface Callback{
-        void getChooseGoType(GoTypeSpec goTypeSpec);
-    }
 
-    public interface MultiCallback{
-        void getMultiChooseGoType(List<GoTypeSpec> list);
-    }
-
-    //选择类的成员变量
-    public static List<DesignPattern.FieldInfo> getChooseFieldPopup(GoTypeSpec spec, Project project,String title){
-        if (spec==null
-                || project==null
+    // 选择类的成员变量
+    public static List<DesignPattern.FieldInfo> getChooseFieldPopup(GoTypeSpec spec,
+                                                                    Project project, String title) {
+        if (spec == null
+                || project == null
                 || !(spec.getSpecType().getType() instanceof GoStructType)
         ) {
             return null;
         }
 
-        GoStructType structType=(GoStructType) spec.getSpecType().getType();
-        List<GoNamedElement> definitions = ContainerUtil.filter(structType.getFieldDefinitions(), (fd) -> !fd.isBlank());
-        GoMemberChooserNode[] chooserNodes = ContainerUtil.map2Array(definitions, GoMemberChooserNode.class, GoMemberChooserNode::new);
+        GoStructType structType = (GoStructType) spec.getSpecType().getType();
+        List<GoNamedElement> definitions = ContainerUtil.filter(structType.getFieldDefinitions(),
+                (fd) -> !fd.isBlank());
+        GoMemberChooserNode[] chooserNodes = ContainerUtil.map2Array(definitions,
+                GoMemberChooserNode.class, GoMemberChooserNode::new);
 
         GoMemberChooser memberChooser = new GoMemberChooser(chooserNodes, project, null);
-        memberChooser.setTitle(title==null?"Select Fields":title);
-        SmartList<DesignPattern.FieldInfo> list=new SmartList<>();
-        if (memberChooser.showAndGet()){
-            for (GoMemberChooserNode node:memberChooser.getSelectedElements()) {
-                GoNamedElement element = ObjectUtils.tryCast(node.getPsiElement(), GoNamedElement.class);
-                list.add(new DesignPattern.FieldInfo(element.getName(),element.getGoType(null).getText()));
+        memberChooser.setTitle(title == null ? "Select Fields" : title);
+        SmartList<DesignPattern.FieldInfo> list = new SmartList<>();
+        if (memberChooser.showAndGet()) {
+            for (GoMemberChooserNode node : memberChooser.getSelectedElements()) {
+                GoNamedElement element = ObjectUtils.tryCast(node.getPsiElement(),
+                        GoNamedElement.class);
+                list.add(new DesignPattern.FieldInfo(element.getName(),
+                        element.getGoType(null).getText()));
             }
         }
         return list;
     }
 
-    //选择多个结构体
-    public static void getMultiChooseStructPopup(@NotNull GoFile file,@NotNull Editor editor,@NotNull Project project,String title,@NotNull MultiCallback callback) {
+    // 选择多个结构体
+    public static void getMultiChooseStructPopup(@NotNull GoFile file,
+                                                 @NotNull Editor editor,
+                                                 @NotNull Project project,
+                                                 String title,
+                                                 @NotNull MultiCallback callback) {
         GoTypeSpec typeSpecToGenerate = findTypeSpec(editor, file);
         if (isValidTypeSpec(typeSpecToGenerate)) {
             //只选择一个结构体不处理
@@ -90,60 +91,78 @@ public class PopupUtil {
         } else {
             StreamEx<NavigatablePsiElement> validTypeSpecs = selectValidTypeSpecs(file);
             if (!ApplicationManager.getApplication().isUnitTestMode()) {
-                validTypeSpecs = validTypeSpecs.prepend(new PopupUtil.CreateTypeFakePsiElement(file));
+                validTypeSpecs =
+                        validTypeSpecs.prepend(new PopupUtil.CreateTypeFakePsiElement(file));
             }
             NavigatablePsiElement[] elements = validTypeSpecs.toArray(NavigatablePsiElement[]::new);
             String DEFAULT_STRUCT_TITLE = "Choose Type";
-            JBPopup popup = PsiElementListNavigator.navigateOrCreatePopup(elements,title==null? DEFAULT_STRUCT_TITLE :title, null, GoGotoUtil.DEFAULT_RENDERER, ApplicationManager.getApplication().isUnitTestMode() ? null : new PopupUtil.DummyBackgroundUpdaterTask(project), (objects) -> {
-                if (objects.length > 1) {
-                    SmartList<GoTypeSpec> list=new SmartList<>();
-                    for (Object o:objects) {
-                        list.add((GoTypeSpec) o);
-                    }
-                    callback.getMultiChooseGoType(list);
-                }else {
-                    callback.getMultiChooseGoType(null);
-                }
-            });
+            JBPopup popup = PsiElementListNavigator.navigateOrCreatePopup(
+                    elements, title == null ? DEFAULT_STRUCT_TITLE : title,
+                    null,
+                    GoGotoUtil.DEFAULT_RENDERER,
+                    ApplicationManager.getApplication().isUnitTestMode() ? null :
+                            new PopupUtil.DummyBackgroundUpdaterTask(project),
+                    (objects) -> {
+                        if (objects.length > 1) {
+                            SmartList<GoTypeSpec> list = new SmartList<>();
+                            for (Object o : objects) {
+                                list.add((GoTypeSpec) o);
+                            }
+                            callback.getMultiChooseGoType(list);
+                        } else {
+                            callback.getMultiChooseGoType(null);
+                        }
+                    });
             if (popup != null) {
                 popup.showInBestPositionFor(editor);
             }
         }
     }
 
-    //选择单个结构体
-    public static void getChooseStructPopup(@NotNull GoFile file,@NotNull Editor editor,@NotNull Project project,String title,@NotNull Callback callback) {
+    // 选择单个结构体
+    public static void getChooseStructPopup(@NotNull GoFile file, @NotNull Editor editor,
+                                            @NotNull Project project, String title,
+                                            @NotNull Callback callback) {
         GoTypeSpec typeSpecToGenerate = findTypeSpec(editor, file);
         if (isValidTypeSpec(typeSpecToGenerate)) {
             callback.getChooseGoType(typeSpecToGenerate);
         } else {
             StreamEx<NavigatablePsiElement> validTypeSpecs = selectValidTypeSpecs(file);
             if (!ApplicationManager.getApplication().isUnitTestMode()) {
-                validTypeSpecs = validTypeSpecs.prepend(new PopupUtil.CreateTypeFakePsiElement(file));
+                validTypeSpecs =
+                        validTypeSpecs.prepend(new PopupUtil.CreateTypeFakePsiElement(file));
             }
             NavigatablePsiElement[] elements = validTypeSpecs.toArray(NavigatablePsiElement[]::new);
-            JBPopup popup = PsiElementListNavigator.navigateOrCreatePopup(elements, title==null?"Choose Type":title, null, GoGotoUtil.DEFAULT_RENDERER, ApplicationManager.getApplication().isUnitTestMode() ? null : new PopupUtil.DummyBackgroundUpdaterTask(project), (objects) -> {
-                if (objects.length == 1 ) {
-                    callback.getChooseGoType((GoTypeSpec) objects[0]);
-                }
-            });
+            JBPopup popup = PsiElementListNavigator.navigateOrCreatePopup(elements,
+                    title == null ? "Choose Type" : title, null, GoGotoUtil.DEFAULT_RENDERER,
+                    ApplicationManager.getApplication().isUnitTestMode() ? null :
+                            new PopupUtil.DummyBackgroundUpdaterTask(project), (objects) -> {
+                        if (objects.length == 1) {
+                            callback.getChooseGoType((GoTypeSpec) objects[0]);
+                        }
+                    });
             if (popup != null) {
                 popup.showInBestPositionFor(editor);
             }
         }
     }
 
-    //选择要实现的接口
-    public static void getChooseInterfacePopup(@NotNull GoFile file,@NotNull Project project,String title,@NotNull Callback callback){
-        final GoTypeContributorsBasedGotoByModel model = new GoTypeContributorsBasedGotoByModel(project, new MyGoTypeContributor(file, null), title==null?"Choose interface to implement:":title);
-        ChooseByNamePopup oldPopup = project.getUserData(ChooseByNamePopup.CHOOSE_BY_NAME_POPUP_IN_PROJECT_KEY);
+    // 选择要实现的接口
+    public static void getChooseInterfacePopup(@NotNull GoFile file, @NotNull Project project,
+                                               String title, @NotNull Callback callback) {
+        final GoTypeContributorsBasedGotoByModel model =
+                new GoTypeContributorsBasedGotoByModel(project, new MyGoTypeContributor(file,
+                        null), title == null ? "Choose interface to implement:" : title);
+        ChooseByNamePopup oldPopup =
+                project.getUserData(ChooseByNamePopup.CHOOSE_BY_NAME_POPUP_IN_PROJECT_KEY);
         if (oldPopup != null) {
             oldPopup.close(false);
         }
         PsiDocumentManager.getInstance(project).commitAllDocuments();
 
         ChooseByNameItemProvider provider = new DefaultChooseByNameItemProvider(file);
-        final PopupUtil.MyChooseByNamePopup popup = new PopupUtil.MyChooseByNamePopup(project, model, provider, oldPopup);
+        final PopupUtil.MyChooseByNamePopup popup = new PopupUtil.MyChooseByNamePopup(project,
+                model, provider, oldPopup);
         project.putUserData(ChooseByNamePopup.CHOOSE_BY_NAME_POPUP_IN_PROJECT_KEY, popup);
         popup.setCheckBoxShortcut(ActionManager.getInstance().getAction("ImplementMethods").getShortcutSet());
         popup.setSearchInAnyPlace(true);
@@ -167,17 +186,66 @@ public class PopupUtil {
         }, ModalityState.current(), true);
     }
 
-    private static GoTypeSpec findTypeSpec(@NotNull Editor editor,@NotNull PsiFile file) {
+    /**
+     * 选择一个 class
+     *
+     * @param file
+     * @param project
+     * @param title
+     * @param callback
+     */
+    public static void getChooseClassPopup(@NotNull GoFile file, @NotNull Project project,
+                                           String title, @NotNull Callback callback) {
+        final GoTypeContributorsBasedGotoByModel model =
+                new GoTypeContributorsBasedGotoByModel(project, new MyGoTypeContributorV2(file,
+                        null), title == null ? "Choose interface to implement:" : title);
+        ChooseByNamePopup oldPopup =
+                project.getUserData(ChooseByNamePopup.CHOOSE_BY_NAME_POPUP_IN_PROJECT_KEY);
+        if (oldPopup != null) {
+            oldPopup.close(false);
+        }
+        PsiDocumentManager.getInstance(project).commitAllDocuments();
+
+        ChooseByNameItemProvider provider = new DefaultChooseByNameItemProvider(file);
+        final PopupUtil.MyChooseByNamePopup popup = new PopupUtil.MyChooseByNamePopup(project,
+                model, provider, oldPopup);
+        project.putUserData(ChooseByNamePopup.CHOOSE_BY_NAME_POPUP_IN_PROJECT_KEY, popup);
+//        popup.setCheckBoxShortcut(ActionManager.getInstance().getAction("Class").getShortcutSet
+//        ());
+        popup.setSearchInAnyPlace(false);
+        popup.invoke(new ChooseByNamePopupComponent.Callback() {
+            @Override
+            public void elementChosen(Object element) {
+            }
+
+            @Override
+            public void onClose() {
+                Disposer.dispose(model);
+                if (popup.myClosedCorrectly) {
+                    Object chosenElement = popup.getChosenElement();
+                    if (chosenElement instanceof GoTypeSpec && !project.isDisposed()) {
+                        IdeFocusManager.getInstance(project).doWhenFocusSettlesDown(() -> {
+                            callback.getChooseGoType((GoTypeSpec) chosenElement);
+                        });
+                    }
+                }
+            }
+        }, ModalityState.current(), true);
+    }
+
+    private static GoTypeSpec findTypeSpec(@NotNull Editor editor, @NotNull PsiFile file) {
 
         Caret caret = editor.getCaretModel().getPrimaryCaret();
         int offset = caret.getOffset();
         PsiElement at = file.findElementAt(offset);
-        at = !(at instanceof PsiWhiteSpace) && (at != null || offset <= 0) ? at : file.findElementAt(offset - 1);
+        at = !(at instanceof PsiWhiteSpace) && (at != null || offset <= 0) ? at :
+                file.findElementAt(offset - 1);
         GoTypeSpec typeSpec = PsiTreeUtil.getParentOfType(at, GoTypeSpec.class);
         if (typeSpec != null) {
             return typeSpec;
         } else {
-            GoTypeDeclaration typeDeclaration = PsiTreeUtil.getParentOfType(at, GoTypeDeclaration.class);
+            GoTypeDeclaration typeDeclaration = PsiTreeUtil.getParentOfType(at,
+                    GoTypeDeclaration.class);
             if (typeDeclaration != null) {
                 List<GoTypeSpec> specList = typeDeclaration.getTypeSpecList();
                 if (specList.size() == 1) {
@@ -186,12 +254,14 @@ public class PopupUtil {
             }
 
             GoType type = PsiTreeUtil.getParentOfType(at, GoType.class);
-            return type != null ? ObjectUtils.tryCast(type.contextlessResolve(), GoTypeSpec.class) : null;
+            return type != null ? ObjectUtils.tryCast(type.contextlessResolve(),
+                    GoTypeSpec.class) : null;
         }
     }
 
-    //将选中的结构体补充实现指定接口中的所有方法
-    public static void createUnImplementMethod(GoFile file,Editor editor,GoTypeSpec structType,GoTypeSpec interfaceToImpl){
+    // 将选中的结构体补充实现指定接口中的所有方法
+    public static void createUnImplementMethod(GoFile file, Editor editor, GoTypeSpec structType,
+                                               GoTypeSpec interfaceToImpl) {
         GoImplementMethodsHandler.generateTemplate(file, editor, structType, interfaceToImpl, null);
     }
 
@@ -213,6 +283,17 @@ public class PopupUtil {
 
     private static StreamEx<NavigatablePsiElement> selectValidTypeSpecs(@NotNull GoFile file) {
         return StreamEx.of(file.getTypes()).filter(GoImplementMethodsHandler::isValidTypeSpec).select(NavigatablePsiElement.class);
+    }
+
+    /**
+     * 回调返回得到的元素
+     */
+    public interface Callback {
+        void getChooseGoType(GoTypeSpec goTypeSpec);
+    }
+
+    public interface MultiCallback {
+        void getMultiChooseGoType(List<GoTypeSpec> list);
     }
 
     private static class CreateTypeFakePsiElement extends RenameableFakePsiElement {
@@ -264,7 +345,8 @@ public class PopupUtil {
             if (this.myAlreadyImplementedTypes == null) {
                 Set<GoTypeSpec> set = ContainerUtil.newTroveSet();
                 if (this.myGenerate != null) {
-                    GoGotoSuperHandler.SUPER_SEARCH.execute(GoGotoUtil.param(this.myGenerate), Processors.cancelableCollectProcessor(set));
+                    GoGotoSuperHandler.SUPER_SEARCH.execute(GoGotoUtil.param(this.myGenerate),
+                            Processors.cancelableCollectProcessor(set));
                 }
 
                 this.myAlreadyImplementedTypes = set;
@@ -283,8 +365,9 @@ public class PopupUtil {
                 } else if (alreadyImplementedTypes.contains(o)) {
                     return false;
                 } else {
-                    GoTypeSpec typeSpec = (GoTypeSpec)o;
-                    return !typeSpec.isPublic() && !GoUtil.inSamePackage(this.myFile, typeSpec.getContainingFile()) ? false : GoTypeUtil.isInterface(typeSpec);
+                    GoTypeSpec typeSpec = (GoTypeSpec) o;
+                    return (typeSpec.isPublic() || GoUtil.inSamePackage(this.myFile,
+                            typeSpec.getContainingFile())) && GoTypeUtil.isInterface(typeSpec);
                 }
             }, processor), parameters);
         }
@@ -301,10 +384,38 @@ public class PopupUtil {
         }
     }
 
+    private static class MyGoTypeContributorV2 extends GoTypeContributor implements Disposable {
+        private PsiFile myFile;
+
+
+        MyGoTypeContributorV2(@NotNull PsiFile file, @Nullable GoTypeSpec typeSpecToGenerate) {
+            super();
+            this.myFile = file;
+        }
+
+        @Override
+        public void processElementsWithName(@NotNull String s, @NotNull Processor<?
+                super NavigationItem> processor, @NotNull FindSymbolParameters parameters) {
+
+            super.processElementsWithName(s, new FilteringProcessor((o) -> {
+                GoTypeSpec typeSpec = (GoTypeSpec) o;
+                return (typeSpec.isPublic() && GoUtil.isInProject(this.myFile)) && !GoTypeUtil.isInterface(typeSpec);
+            }, processor), parameters);
+        }
+
+        @Override
+        public void dispose() {
+            this.myFile = null;
+        }
+    }
+
+
     private static class MyChooseByNamePopup extends ChooseByNamePopup {
         private boolean myClosedCorrectly;
 
-        private MyChooseByNamePopup(@Nullable Project project, @NotNull ChooseByNameModel model, @NotNull ChooseByNameItemProvider provider, @Nullable ChooseByNamePopup oldPopup) {
+        private MyChooseByNamePopup(@Nullable Project project, @NotNull ChooseByNameModel model,
+                                    @NotNull ChooseByNameItemProvider provider,
+                                    @Nullable ChooseByNamePopup oldPopup) {
             super(project, model, provider, oldPopup, null, false, 0);
         }
 

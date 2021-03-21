@@ -14,7 +14,9 @@ import utils.PopupUtil;
  */
 public class SingletonUnSafeAction extends BaseAction {
     @Override
-    protected void actionPerformedImpl(AnActionEvent event,Project project, GoFile file, Editor editor) {
-        PopupUtil.getChooseStructPopup(file, editor, project,null, goTypeSpec -> new SingletonTemplate(event,goTypeSpec,false).generateText());
+    protected void actionPerformedImpl(AnActionEvent event, Project project, GoFile file,
+                                       Editor editor) {
+        PopupUtil.getChooseStructPopup(file, editor, project, null,
+                goTypeSpec -> new SingletonTemplate(event, goTypeSpec, false).generateText());
     }
 }

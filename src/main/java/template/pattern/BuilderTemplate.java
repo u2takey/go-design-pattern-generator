@@ -18,34 +18,34 @@ import java.util.List;
 public class BuilderTemplate extends DesignPattern {
     private GoTypeSpec goTypeSpec;
 
-    public BuilderTemplate(@NotNull AnActionEvent event,@NotNull GoTypeSpec goTypeSpec) {
+    public BuilderTemplate(@NotNull AnActionEvent event, @NotNull GoTypeSpec goTypeSpec) {
         super(event);
         this.goTypeSpec = goTypeSpec;
     }
 
     @Override
     protected void createTemplate(@NotNull GoTemplate template) {
-        List<FieldInfo> list= PopupUtil.getChooseFieldPopup(goTypeSpec,project,null);
+        List<FieldInfo> list = PopupUtil.getChooseFieldPopup(goTypeSpec, project, null);
         if (list.isEmpty()) {
             return;
         }
-        String typeName=goTypeSpec.getName();
-        createSetterAndGetter(template,typeName,list);
-        createBuildInterface(template,typeName,list);
-        createBuilderStruct(template,typeName);
-        createInterfaceImpl(template,typeName,list);
+        String typeName = goTypeSpec.getName();
+        createSetterAndGetter(template, typeName, list);
+        createBuildInterface(template, typeName, list);
+        createBuilderStruct(template, typeName);
+        createInterfaceImpl(template, typeName, list);
     }
 
     //为Builder对象实现接口方法
     private void createInterfaceImpl(GoTemplate template, String typeName, List<FieldInfo> list) {
-        StringBuilder builder=new StringBuilder();
-        String builderName= StringUtil.capitalize(typeName)+"Builder";
-        String lowerName=StringUtil.decapitalize(typeName);
+        StringBuilder builder = new StringBuilder();
+        String builderName = StringUtil.capitalize(typeName) + "Builder";
+        String lowerName = StringUtil.decapitalize(typeName);
         /*func NewFruitBuilder(fruit *Fruit) *FruitBuilder {
             return &FruitBuilder{fruit: fruit}
           }
         */
-        String format="\nfunc New%s(%s *%s) *%s {\n" +
+        String format = "\nfunc New%s(%s *%s) *%s {\n" +
                 "\treturn &%s{%s: %s}\n}\n";
         builder.append(String.format(format,
                 builderName, lowerName, typeName, builderName,
@@ -55,11 +55,11 @@ public class BuilderTemplate extends DesignPattern {
             return f.SetName(name).SetColor(color).Build()
         }*/
         builder.append(String.format("\nfunc (builder %s) Create%s *%s{\n",
-                builderName,setupFunctionParameters(list),typeName
+                builderName, setupFunctionParameters(list), typeName
         ));
 
         builder.append("\treturn builder");
-        for (FieldInfo info:list){
+        for (FieldInfo info : list) {
             builder.append(String.format(".Set%s(%s)",
                     StringUtil.capitalize(info.getName()),
                     StringUtil.decapitalize(info.getName())
@@ -71,9 +71,9 @@ public class BuilderTemplate extends DesignPattern {
         }*/
         builder.append(String.format(
                 "\nfunc (builder %s) Build() *%s {\n" +
-                    "\treturn builder.%s" +
+                        "\treturn builder.%s" +
                         "\n}\n",
-                builderName,typeName,lowerName
+                builderName, typeName, lowerName
         ));
         /*func (builder FruitBuilder) SetName(name string) Builder {
             if builder.fruit==nil {
@@ -82,19 +82,19 @@ public class BuilderTemplate extends DesignPattern {
             builder.fruit.SetName(name)
             return builder
         }*/
-        String format1="\nfunc (builder %s) Set%s(%s %s) Builder {\n" +
+        String format1 = "\nfunc (builder %s) Set%s(%s %s) Builder {\n" +
                 "\tif builder.%s == nil {\n" +
                 "\t\tbuilder.%s = &%s{}\n" +
                 "\t}\n" +
                 "\tbuilder.%s.Set%s(%s)\n" +
                 "\treturn builder\n" +
                 "}\n";
-        for (FieldInfo info:list){
+        for (FieldInfo info : list) {
             builder.append(String.format(format1,
-                    builderName,StringUtil.capitalize(info.getName()),
-                    info.getName(),info.getType(),
-                    lowerName,lowerName,typeName,lowerName,
-                    StringUtil.capitalize(info.getName()),info.getName()
+                    builderName, StringUtil.capitalize(info.getName()),
+                    info.getName(), info.getType(),
+                    lowerName, lowerName, typeName, lowerName,
+                    StringUtil.capitalize(info.getName()), info.getName()
             ));
         }
         template.addTextSegment(builder.toString());
@@ -102,10 +102,10 @@ public class BuilderTemplate extends DesignPattern {
 
     //生成Builder对象
     private void createBuilderStruct(GoTemplate template, String typeName) {
-        String format="\ntype %sBuilder struct {\n" +
+        String format = "\ntype %sBuilder struct {\n" +
                 "\t%s *%s\n" +
                 "}\n";
-        String text=String.format(format,
+        String text = String.format(format,
                 StringUtil.capitalize(typeName),
                 StringUtil.decapitalize(typeName),
                 typeName
@@ -115,9 +115,9 @@ public class BuilderTemplate extends DesignPattern {
 
     //生成build接口
     private void createBuildInterface(GoTemplate template, String typeName, List<FieldInfo> list) {
-        StringBuilder builder=new StringBuilder();
+        StringBuilder builder = new StringBuilder();
         builder.append("type Builder interface {\n");
-        for (FieldInfo info:list){
+        for (FieldInfo info : list) {
             builder.append("\tSet")
                     .append(StringUtil.capitalize(info.getName()))
                     .append("(")
@@ -135,11 +135,12 @@ public class BuilderTemplate extends DesignPattern {
     }
 
     //为当前结构体生成Setter&Getter
-    private void createSetterAndGetter(@NotNull GoTemplate template,String typeName,@NotNull List<FieldInfo> lists){
-        StringBuilder builder=new StringBuilder();
-        String firstLower=StringUtil.decapitalize(typeName);
+    private void createSetterAndGetter(@NotNull GoTemplate template, String typeName,
+                                       @NotNull List<FieldInfo> lists) {
+        StringBuilder builder = new StringBuilder();
+        String firstLower = StringUtil.decapitalize(typeName);
 
-        String templateFormat="\nfunc (%s *%s) Set%s(%s %s)  {\n" +
+        String templateFormat = "\nfunc (%s *%s) Set%s(%s %s)  {\n" +
                 "\t\t%s.%s=%s\n" +
                 "}\n" +
                 "\n" +
@@ -147,20 +148,20 @@ public class BuilderTemplate extends DesignPattern {
                 "\treturn %s.%s\n" +
                 "}\n";
 
-        for (FieldInfo info:lists){
+        for (FieldInfo info : lists) {
             builder.append(String.format(templateFormat,
                     //Setter
                     firstLower, typeName,
                     StringUtil.capitalize(info.getName()),
-                    info.getName(),info.getType(),
+                    info.getName(), info.getType(),
                     firstLower,
-                    info.getName(),info.getName(),
+                    info.getName(), info.getName(),
                     //Getter
                     firstLower, typeName,
                     StringUtil.capitalize(info.getName()),
                     info.getType(),
-                    firstLower,info.getName()
-                    ));
+                    firstLower, info.getName()
+            ));
         }
         template.addTextSegment(builder.toString());
     }

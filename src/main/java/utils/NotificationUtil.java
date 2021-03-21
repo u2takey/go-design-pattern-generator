@@ -12,23 +12,27 @@ import com.intellij.openapi.project.Project;
  * @description //TODO 非模态消息提示框
  */
 public class NotificationUtil {
-    private final static NotificationGroup NOTIFICATION_GROUP=new NotificationGroup("Go DesignPattern Generator", NotificationDisplayType.BALLOON, false);
+    private final static NotificationGroup NOTIFICATION_GROUP = new NotificationGroup("Go " +
+            "DesignPattern Generator", NotificationDisplayType.BALLOON, false);
 
-    //错误消息提示框,
-    public static void notifyError(Project project, String content){
-        final Notification notification = NOTIFICATION_GROUP.createNotification(content, NotificationType.ERROR);
+    // 错误消息提示框,
+    public static void notifyError(Project project, String content) {
+        final Notification notification = NOTIFICATION_GROUP.createNotification(content,
+                NotificationType.ERROR);
         notification.notify(project);
     }
 
-    //普通消息提示框
-    public static void notifyInfo(Project project,String content){
-        final Notification notification = NOTIFICATION_GROUP.createNotification(content, NotificationType.INFORMATION);
+    // 普通消息提示框
+    public static void notifyInfo(Project project, String content) {
+        final Notification notification = NOTIFICATION_GROUP.createNotification(content,
+                NotificationType.INFORMATION);
         notification.notify(project);
     }
 
-    //警告消息提示框
-    public static void notifyWarn(Project project,String content){
-        final Notification notification = NOTIFICATION_GROUP.createNotification(content, NotificationType.WARNING);
+    // 警告消息提示框
+    public static void notifyWarn(Project project, String content) {
+        final Notification notification = NOTIFICATION_GROUP.createNotification(content,
+                NotificationType.WARNING);
         notification.notify(project);
     }
 }

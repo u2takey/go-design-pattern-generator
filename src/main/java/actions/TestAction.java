@@ -20,7 +20,8 @@ import java.util.Optional;
  */
 public class TestAction extends BaseAction {
     @Override
-    protected void actionPerformedImpl(AnActionEvent event, Project project, GoFile file, Editor editor) {
+    protected void actionPerformedImpl(AnActionEvent event, Project project, GoFile file,
+                                       Editor editor) {
         StringBuilder builder = new StringBuilder();
         builder.append(funcTest(file))
                 .append(methodTest(file))
@@ -148,7 +149,8 @@ public class TestAction extends BaseAction {
                         for (GoFieldDeclaration declaration : fields) {
                             builder.append("[");
                             //获取变量名和类型
-                            for (GoFieldDefinition definition : declaration.getFieldDefinitionList())
+                            for (GoFieldDefinition definition :
+                                    declaration.getFieldDefinitionList())
                                 builder.append(definition.getName()).append(",");
                             builder.append("]");
                             //获取变量类型

@@ -19,7 +19,8 @@ public class ProxyTemplate extends DesignPattern {
     private GoTypeSpec structType;
     private GoTypeSpec interfaceType;
 
-    public ProxyTemplate(@NotNull AnActionEvent event,@NotNull GoTypeSpec structType,@NotNull GoTypeSpec interfaceType) {
+    public ProxyTemplate(@NotNull AnActionEvent event, @NotNull GoTypeSpec structType,
+                         @NotNull GoTypeSpec interfaceType) {
         super(event);
         this.structType = structType;
         this.interfaceType = interfaceType;
@@ -27,48 +28,52 @@ public class ProxyTemplate extends DesignPattern {
 
     @Override
     protected void createTemplate(@NotNull GoTemplate template) {
-        String structName=structType.getName();
-        String interName=interfaceType.getName();
+        String structName = structType.getName();
+        String interName = interfaceType.getName();
         //实现其中结构体的中未实现的接口方法
-        PopupUtil.createUnImplementMethod(file,editor,structType,interfaceType);
-        createProxyStruct(template,structName,interName);
-        createProxyMethod(template,structType,interfaceType);
+        PopupUtil.createUnImplementMethod(file, editor, structType, interfaceType);
+        createProxyStruct(template, structName, interName);
+        createProxyMethod(template, structType, interfaceType);
     }
 
-    private void createProxyMethod(@NotNull GoTemplate template, @NotNull GoTypeSpec structType, @NotNull GoTypeSpec interfaceType) {
-        StringBuilder builder=new StringBuilder();
-        String proxyerName="Proxy"+StringUtil.capitalize(structType.getName());
+    private void createProxyMethod(@NotNull GoTemplate template, @NotNull GoTypeSpec structType,
+                                   @NotNull GoTypeSpec interfaceType) {
+        StringBuilder builder = new StringBuilder();
+        String proxyerName = "Proxy" + StringUtil.capitalize(structType.getName());
         /*func (s ProxyServer) ProxyFor(method *ServerMethod)  {
             s.server=*method
         }*/
-        String format="\nfunc (p %s) ProxyFor(%s *%s)  {\n" +
+        String format = "\nfunc (p %s) ProxyFor(%s *%s)  {\n" +
                 "\tp.%s=*%s\n" +
                 "}\n";
         builder.append(String.format(format,
                 proxyerName,
-                StringUtil.decapitalize(interfaceType.getName()),interfaceType.getName(),
-                StringUtil.decapitalize(interfaceType.getName()),StringUtil.decapitalize(interfaceType.getName())
+                StringUtil.decapitalize(interfaceType.getName()), interfaceType.getName(),
+                StringUtil.decapitalize(interfaceType.getName()),
+                StringUtil.decapitalize(interfaceType.getName())
         ));
-        List<MethodInfo> list=MethodInfo.Parse(interfaceType);
-        String format1="\nfunc (p %s) %s%s %s{\n" +
+        List<MethodInfo> list = MethodInfo.Parse(interfaceType);
+        String format1 = "\nfunc (p %s) %s%s %s{\n" +
                 "\t/*do something before*/\n" +
                 "\tp.%s.%s%s\n" +
                 "\t/*do something after*/\n" +
                 "}\n";
-        for (MethodInfo info:list){
+        for (MethodInfo info : list) {
             builder.append(String.format(format1,
-                    proxyerName,info.getName(),info.getParametersText(),info.getResultsText(),
-                    StringUtil.decapitalize(interfaceType.getName()),info.getName(),info.getParametersTextNoType()
+                    proxyerName, info.getName(), info.getParametersText(), info.getResultsText(),
+                    StringUtil.decapitalize(interfaceType.getName()), info.getName(),
+                    info.getParametersTextNoType()
             ));
         }
         template.addTextSegment(builder.toString());
     }
 
-    private void createProxyStruct(@NotNull GoTemplate template,@NotNull String structName,@NotNull String interName) {
+    private void createProxyStruct(@NotNull GoTemplate template, @NotNull String structName,
+                                   @NotNull String interName) {
         /*type ProxyServer struct {
             server ServerMethod
         }*/
-        String format="\n\ntype Proxy%s struct {\n" +
+        String format = "\n\ntype Proxy%s struct {\n" +
                 "\t%s %s\n" +
                 "}\n";
         template.addTextSegment(String.format(format,
